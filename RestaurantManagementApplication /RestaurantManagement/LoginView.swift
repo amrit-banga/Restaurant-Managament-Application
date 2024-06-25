@@ -3,7 +3,7 @@
 //  TtApp
 //
 //  Created by Amrit Banga on 6/10/24.
-//
+//  Changed by Zijian Zhang on 6/24/24
 
 import SwiftUI
 import FirebaseAuth
@@ -11,7 +11,7 @@ import FirebaseAuth
 struct LoginView: View {
     @State private var email: String = ""
     @State private var password: String = ""
-    @State private var navigateToHome = false
+    @State private var navigateToVerification = false
     @State private var showAlert = false
     @State private var alertMessage = ""
 
@@ -36,7 +36,7 @@ struct LoginView: View {
                 .cornerRadius(10)
                 .padding(.horizontal)
             
-            NavigationLink(destination: HomePageView(), isActive: $navigateToHome) {
+            NavigationLink(destination: VerificationView(email: email), isActive: $navigateToVerification) {
                 EmptyView()
             }
 
@@ -70,28 +70,26 @@ struct LoginView: View {
             alertMessage = "Invalid email address."
             showAlert = true
         } else {
-            print("Attempting to log in with email: \(email)")
             Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
                 if let error = error {
-                    print("Error during sign-in: \(error.localizedDescription)")
                     alertMessage = error.localizedDescription
                     showAlert = true
                 } else {
-                    print("Successfully signed in")
-                    navigateToHome = true
+                    navigateToVerification = true
                 }
             }
         }
     }
 
     func isValidEmail(_ email: String) -> Bool {
-        let emailFormat = 
-        "(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?"
-        let emailPredicate = NSPredicate(format:"SELF MATCHES %@", emailFormat)
+        let emailFormat = "(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailFormat)
         return emailPredicate.evaluate(with: email)
     }
 }
 
-#Preview {
-    LoginView()
+struct LoginView_Previews: PreviewProvider {
+    static var previews: some View {
+        LoginView()
+    }
 }
