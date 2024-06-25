@@ -65,15 +65,15 @@ struct FoodInventoryView: View {
             VStack {
                 HStack {
                     Text("Food")
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: 45, alignment: .leading)
                     Text("Quantity")
-                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(maxWidth: 70, alignment: .center)
                     Text("Cost")
-                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(maxWidth: 40, alignment: .center)
                     Text("Expiration Date")
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
-                .font(.headline)
+                .font(.subheadline)
                 .padding()
                 .border(Color.black)
                 
@@ -81,12 +81,14 @@ struct FoodInventoryView: View {
                     HStack {
                         Text(item.name)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .font(.system(size: 11))
                         Text("\(item.quantity)")
                             .frame(maxWidth: .infinity, alignment: .center)
                         Text("$\(String(format: "%.2f", item.cost))")
                             .frame(maxWidth: .infinity, alignment: .center)
                         Text(expirationDateFormatted(item.expirationDate))
                             .frame(maxWidth: .infinity, alignment: .trailing)
+                            .font(.system(size: 12))
                         Button(action: {
                             selectedItem = item
                             newName = item.name
@@ -95,17 +97,18 @@ struct FoodInventoryView: View {
                             newExpirationDate = item.expirationDate
                             isEditingItem = true
                         }) {
-                            Text("Edit")
+                            Image(systemName: "pencil")
                                 .foregroundColor(.blue)
                         }
-                        .padding(.leading, 10)
+                        .padding(.leading, 5)
                         Button(action: {
                             viewModel.removeFoodItem(item)
                         }) {
-                            Text("Remove")
+                            Text("X")
                                 .foregroundColor(.red)
+                                .font(.system(size: 20))
                         }
-                        .padding(.leading, 10)
+                        .padding(.leading, 1)
                     }
                     .padding()
                     .border(Color.black)
@@ -173,6 +176,7 @@ struct FoodInventoryView: View {
                         newCost = ""
                         newExpirationDate = Date()
                     }
+                    
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(Color.blue)
@@ -199,6 +203,9 @@ struct FoodInventoryView: View {
         .sheet(isPresented: $isEditingItem, content: {
             // Sheet content for editing existing food item
             VStack {
+                Text("Edit")
+                .font(.system(size: 30))
+                
                 TextField("Enter name", text: $newName)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding()
