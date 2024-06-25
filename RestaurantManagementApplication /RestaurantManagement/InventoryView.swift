@@ -32,15 +32,29 @@ class InventoryViewModel: ObservableObject {
         foodItems.append(newItem)
     }
     
+    // Function to update an existing food item
+    func updateFoodItem(_ item: FoodItem) {
+        if let index = foodItems.firstIndex(where: { $0.id == item.id }) {
+            foodItems[index] = item
+        }
+    }
+    
     // Function to remove a food item
     func removeFoodItem(at offsets: IndexSet) {
         foodItems.remove(atOffsets: offsets)
+    }
+    
+    // Function to remove a specific food item
+    func removeFoodItem(_ item: FoodItem) {
+        foodItems.removeAll { $0.id == item.id }
     }
 }
 
 struct FoodInventoryView: View {
     @StateObject private var viewModel = InventoryViewModel()
     @State private var isShowingAddItemSheet = false
+    @State private var isEditingItem = false
+    @State private var selectedItem: FoodItem? = nil
     @State private var newName = ""
     @State private var newQuantity = ""
     @State private var newCost = ""
@@ -73,6 +87,25 @@ struct FoodInventoryView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                         Text(expirationDateFormatted(item.expirationDate))
                             .frame(maxWidth: .infinity, alignment: .trailing)
+                        Button(action: {
+                            selectedItem = item
+                            newName = item.name
+                            newQuantity = "\(item.quantity)"
+                            newCost = String(format: "%.2f", item.cost)
+                            newExpirationDate = item.expirationDate
+                            isEditingItem = true
+                        }) {
+                            Text("Edit")
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.leading, 10)
+                        Button(action: {
+                            viewModel.removeFoodItem(item)
+                        }) {
+                            Text("Remove")
+                                .foregroundColor(.red)
+                        }
+                        .padding(.leading, 10)
                     }
                     .padding()
                     .border(Color.black)
@@ -148,6 +181,73 @@ struct FoodInventoryView: View {
                     
                     Button("Cancel") {
                         isShowingAddItemSheet = false // Dismiss sheet on cancel
+                        newName = ""
+                        newQuantity = ""
+                        newCost = ""
+                        newExpirationDate = Date()
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.gray)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .padding(.top)
+            }
+            .padding()
+        })
+        .sheet(isPresented: $isEditingItem, content: {
+            // Sheet content for editing existing food item
+            VStack {
+                TextField("Enter name", text: $newName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                
+                TextField("Enter quantity", text: $newQuantity)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                    .onChange(of: newQuantity) { newValue in
+                        let filtered = newValue.filter { "0123456789".contains($0) }
+                        if filtered != newValue {
+                            self.newQuantity = filtered
+                        }
+                    }
+                
+                TextField("Enter cost", text: $newCost)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding()
+                    .onChange(of: newCost) { newValue in
+                        let filtered = newValue.filter { "0123456789.".contains($0) }
+                        if filtered != newValue {
+                            self.newCost = filtered
+                        }
+                    }
+                
+                DatePicker("Expiration Date", selection: $newExpirationDate, displayedComponents: .date)
+                    .padding()
+                
+                HStack {
+                    Button("Save") {
+                        guard let selectedItem = selectedItem,
+                              !newName.isEmpty,
+                              let quantity = Int(newQuantity),
+                              let cost = Double(newCost) else { return }
+                        let updatedItem = FoodItem(id: selectedItem.id, name: newName, quantity: quantity, cost: cost, expirationDate: newExpirationDate)
+                        viewModel.updateFoodItem(updatedItem)
+                        isEditingItem = false // Dismiss sheet after editing
+                        newName = ""
+                        newQuantity = ""
+                        newCost = ""
+                        newExpirationDate = Date()
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                    
+                    Button("Cancel") {
+                        isEditingItem = false // Dismiss sheet on cancel
                         newName = ""
                         newQuantity = ""
                         newCost = ""
