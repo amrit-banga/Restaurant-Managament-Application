@@ -4,12 +4,14 @@
 //
 //  Created by Amrit Banga on 6/10/24.
 //  Edited by Tucker Brisbois 6/17/24.
-//
+//  Edited by Zijian Zhang 6/25/24.
 
 import Foundation
 import SwiftUI
+import FirebaseFirestore
 
 // Define a struct for a food item with additional properties
+
 struct FoodItem: Identifiable {
     var id = UUID()
     var name: String
@@ -18,37 +20,116 @@ struct FoodItem: Identifiable {
     var expirationDate: Date
 }
 
-// Create a ViewModel to manage the inventory
-class InventoryViewModel: ObservableObject {
-    @Published var foodItems = [
-        FoodItem(name: "Apples", quantity: 10, cost: 2.99, expirationDate: Date()),
-        FoodItem(name: "Bananas", quantity: 5, cost: 1.99, expirationDate: Date().addingTimeInterval(86400 * 5)), // 5 days later
-        FoodItem(name: "Oranges", quantity: 8, cost: 3.49, expirationDate: Date().addingTimeInterval(86400 * 7)) // 7 days later
-    ]
+
+class DatabaseManager {
+    static let shared = DatabaseManager()
+    private let db = Firestore.firestore()
     
+    private init() {}
+    
+    func getAllItems(completion: @escaping ([FoodItem]) -> Void) {
+        db.collection("foodItems").getDocuments { (snapshot, error) in
+            var items = [FoodItem]()
+            if let error = error {
+                print("Error getting documents: \(error)")
+                completion(items)
+                return
+            }
+            for document in snapshot!.documents {
+                let data = document.data()
+                if let id = data["id"] as? String,
+                   let name = data["name"] as? String,
+                   let quantity = data["quantity"] as? Int,
+                   let cost = data["cost"] as? Double,
+                   let expirationDate = (data["expirationDate"] as? Timestamp)?.dateValue() {
+                    items.append(FoodItem(id: UUID(uuidString: id)!,
+                                          name: name,
+                                          quantity: quantity,
+                                          cost: cost,
+                                          expirationDate: expirationDate))
+                }
+            }
+            completion(items)
+        }
+    }
+    
+    func addItem(_ item: FoodItem) {
+        db.collection("foodItems").document(item.id.uuidString).setData([
+            "id": item.id.uuidString,
+            "name": item.name,
+            "quantity": item.quantity,
+            "cost": item.cost,
+            "expirationDate": item.expirationDate
+        ]) { error in
+            if let error = error {
+                print("Error adding document: \(error)")
+            }
+        }
+    }
+    
+    func updateItem(_ item: FoodItem) {
+        db.collection("foodItems").document(item.id.uuidString).updateData([
+            "name": item.name,
+            "quantity": item.quantity,
+            "cost": item.cost,
+            "expirationDate": item.expirationDate
+        ]) { error in
+            if let error = error {
+                print("Error updating document: \(error)")
+            }
+        }
+    }
+    
+    func deleteItem(_ item: FoodItem) {
+        db.collection("foodItems").document(item.id.uuidString).delete { error in
+            if let error = error {
+                print("Error deleting document: \(error)")
+            }
+        }
+    }
+}
+
+// Create a ViewModel to manage the inventory
+
+class InventoryViewModel: ObservableObject {
+    @Published var foodItems = [FoodItem]()
+    
+    init() {
+        fetchFoodItems()
+    }
+
+    func fetchFoodItems() {
+        DatabaseManager.shared.getAllItems { [weak self] items in
+            DispatchQueue.main.async {
+                self?.foodItems = items
+            }
+        }
+    }
+
     // Function to add a new food item
     func addFoodItem(name: String, quantity: Int, cost: Double, expirationDate: Date) {
         let newItem = FoodItem(name: name, quantity: quantity, cost: cost, expirationDate: expirationDate)
-        foodItems.append(newItem)
+        DatabaseManager.shared.addItem(newItem)
+        fetchFoodItems()
     }
     
     // Function to update an existing food item
     func updateFoodItem(_ item: FoodItem) {
-        if let index = foodItems.firstIndex(where: { $0.id == item.id }) {
-            foodItems[index] = item
-        }
+        DatabaseManager.shared.updateItem(item)
+        fetchFoodItems()
     }
     
     // Function to remove a food item
     func removeFoodItem(at offsets: IndexSet) {
-        foodItems.remove(atOffsets: offsets)
+        offsets.map { foodItems[$0] }.forEach { DatabaseManager.shared.deleteItem($0) }
+        fetchFoodItems()
     }
-    
-    // Function to remove a specific food item
     func removeFoodItem(_ item: FoodItem) {
-        foodItems.removeAll { $0.id == item.id }
+        DatabaseManager.shared.deleteItem(item)
+        fetchFoodItems()
     }
 }
+
 
 struct FoodInventoryView: View {
     @StateObject private var viewModel = InventoryViewModel()
