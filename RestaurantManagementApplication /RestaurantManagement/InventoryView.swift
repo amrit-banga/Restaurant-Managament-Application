@@ -4,13 +4,12 @@
 //
 //  Created by Amrit Banga on 6/10/24.
 //  Edited by Tucker Brisbois 6/17/24.
-//  Edited by Zijian Zhang 6/25/24.
+//  Edited by Zijian Zhang 6/25/24, 6/28/24
 
 import Foundation
 import SwiftUI
 import FirebaseFirestore
 
-// Define a struct for a food item with additional properties
 
 struct FoodItem: Identifiable {
     var id = UUID()
@@ -18,17 +17,16 @@ struct FoodItem: Identifiable {
     var quantity: Int
     var cost: Double
     var expirationDate: Date
+    var businessID: UUID
 }
-
-
 class DatabaseManager {
     static let shared = DatabaseManager()
     private let db = Firestore.firestore()
     
     private init() {}
     
-    func getAllItems(completion: @escaping ([FoodItem]) -> Void) {
-        db.collection("foodItems").getDocuments { (snapshot, error) in
+    func getAllItems(for businessID: UUID, completion: @escaping ([FoodItem]) -> Void) {
+        db.collection("foodItems").whereField("businessID", isEqualTo: businessID.uuidString).getDocuments { (snapshot, error) in
             var items = [FoodItem]()
             if let error = error {
                 print("Error getting documents: \(error)")
@@ -41,12 +39,14 @@ class DatabaseManager {
                    let name = data["name"] as? String,
                    let quantity = data["quantity"] as? Int,
                    let cost = data["cost"] as? Double,
-                   let expirationDate = (data["expirationDate"] as? Timestamp)?.dateValue() {
+                   let expirationDate = (data["expirationDate"] as? Timestamp)?.dateValue(),
+                   let businessID = data["businessID"] as? String {
                     items.append(FoodItem(id: UUID(uuidString: id)!,
                                           name: name,
                                           quantity: quantity,
                                           cost: cost,
-                                          expirationDate: expirationDate))
+                                          expirationDate: expirationDate,
+                                          businessID: UUID(uuidString: businessID)!))
                 }
             }
             completion(items)
@@ -59,7 +59,8 @@ class DatabaseManager {
             "name": item.name,
             "quantity": item.quantity,
             "cost": item.cost,
-            "expirationDate": item.expirationDate
+            "expirationDate": item.expirationDate,
+            "businessID": item.businessID.uuidString
         ]) { error in
             if let error = error {
                 print("Error adding document: \(error)")
@@ -72,7 +73,8 @@ class DatabaseManager {
             "name": item.name,
             "quantity": item.quantity,
             "cost": item.cost,
-            "expirationDate": item.expirationDate
+            "expirationDate": item.expirationDate,
+            "businessID": item.businessID.uuidString
         ]) { error in
             if let error = error {
                 print("Error updating document: \(error)")
@@ -89,41 +91,40 @@ class DatabaseManager {
     }
 }
 
-// Create a ViewModel to manage the inventory
 
 class InventoryViewModel: ObservableObject {
     @Published var foodItems = [FoodItem]()
+    var businessID: UUID
     
-    init() {
+    init(businessID: UUID) {
+        self.businessID = businessID
         fetchFoodItems()
     }
 
     func fetchFoodItems() {
-        DatabaseManager.shared.getAllItems { [weak self] items in
+        DatabaseManager.shared.getAllItems(for: businessID) { [weak self] items in
             DispatchQueue.main.async {
                 self?.foodItems = items
             }
         }
     }
 
-    // Function to add a new food item
     func addFoodItem(name: String, quantity: Int, cost: Double, expirationDate: Date) {
-        let newItem = FoodItem(name: name, quantity: quantity, cost: cost, expirationDate: expirationDate)
+        let newItem = FoodItem(name: name, quantity: quantity, cost: cost, expirationDate: expirationDate, businessID: businessID)
         DatabaseManager.shared.addItem(newItem)
         fetchFoodItems()
     }
     
-    // Function to update an existing food item
     func updateFoodItem(_ item: FoodItem) {
         DatabaseManager.shared.updateItem(item)
         fetchFoodItems()
     }
     
-    // Function to remove a food item
     func removeFoodItem(at offsets: IndexSet) {
         offsets.map { foodItems[$0] }.forEach { DatabaseManager.shared.deleteItem($0) }
         fetchFoodItems()
     }
+    
     func removeFoodItem(_ item: FoodItem) {
         DatabaseManager.shared.deleteItem(item)
         fetchFoodItems()
@@ -131,8 +132,10 @@ class InventoryViewModel: ObservableObject {
 }
 
 
+
+
 struct FoodInventoryView: View {
-    @StateObject private var viewModel = InventoryViewModel()
+    @StateObject private var viewModel: InventoryViewModel
     @State private var isShowingAddItemSheet = false
     @State private var isEditingItem = false
     @State private var selectedItem: FoodItem? = nil
@@ -140,10 +143,20 @@ struct FoodInventoryView: View {
     @State private var newQuantity = ""
     @State private var newCost = ""
     @State private var newExpirationDate = Date()
-    
+    var business: Business?
+
+    init(business: Business) {
+        self._viewModel = StateObject(wrappedValue: InventoryViewModel(businessID: business.id))
+        self.business = business
+    }
+
     var body: some View {
         VStack {
             VStack {
+                Text("Managing Inventory for: \(business?.name ?? "Unknown Business")")
+                    .font(.title2)
+                    .padding()
+
                 HStack {
                     Text("Food")
                         .frame(maxWidth: 45, alignment: .leading)
@@ -201,11 +214,11 @@ struct FoodInventoryView: View {
             Spacer()
             
             Button(action: {
-                isShowingAddItemSheet = true // Toggle to show the sheet
+                isShowingAddItemSheet = true
             }) {
                 HStack {
                     Image(systemName: "plus")
-                        .padding(.leading, 5) // Add padding to center image
+                        .padding(.leading, 5)
                     Text("Add Item")
                 }
                 .padding()
@@ -213,7 +226,7 @@ struct FoodInventoryView: View {
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
-            .buttonStyle(BorderlessButtonStyle()) // Use BorderlessButtonStyle for macOS
+            .buttonStyle(BorderlessButtonStyle())
             .padding()
         }
         .padding()
@@ -251,7 +264,7 @@ struct FoodInventoryView: View {
                     Button("Add") {
                         guard !newName.isEmpty, let quantity = Int(newQuantity), let cost = Double(newCost) else { return }
                         viewModel.addFoodItem(name: newName, quantity: quantity, cost: cost, expirationDate: newExpirationDate)
-                        isShowingAddItemSheet = false // Dismiss sheet after adding
+                        isShowingAddItemSheet = false
                         newName = ""
                         newQuantity = ""
                         newCost = ""
@@ -265,7 +278,7 @@ struct FoodInventoryView: View {
                     .cornerRadius(8)
                     
                     Button("Cancel") {
-                        isShowingAddItemSheet = false // Dismiss sheet on cancel
+                        isShowingAddItemSheet = false
                         newName = ""
                         newQuantity = ""
                         newCost = ""
@@ -282,7 +295,6 @@ struct FoodInventoryView: View {
             .padding()
         })
         .sheet(isPresented: $isEditingItem, content: {
-            // Sheet content for editing existing food item
             VStack {
                 Text("Edit")
                 .font(.system(size: 30))
@@ -320,9 +332,9 @@ struct FoodInventoryView: View {
                               !newName.isEmpty,
                               let quantity = Int(newQuantity),
                               let cost = Double(newCost) else { return }
-                        let updatedItem = FoodItem(id: selectedItem.id, name: newName, quantity: quantity, cost: cost, expirationDate: newExpirationDate)
+                        let updatedItem = FoodItem(id: selectedItem.id, name: newName, quantity: quantity, cost: cost, expirationDate: newExpirationDate, businessID: viewModel.businessID)
                         viewModel.updateFoodItem(updatedItem)
-                        isEditingItem = false // Dismiss sheet after editing
+                        isEditingItem = false
                         newName = ""
                         newQuantity = ""
                         newCost = ""
@@ -335,7 +347,7 @@ struct FoodInventoryView: View {
                     .cornerRadius(8)
                     
                     Button("Cancel") {
-                        isEditingItem = false // Dismiss sheet on cancel
+                        isEditingItem = false
                         newName = ""
                         newQuantity = ""
                         newCost = ""
@@ -361,8 +373,11 @@ struct FoodInventoryView: View {
     }
 }
 
+
 struct FoodInventoryView_Previews: PreviewProvider {
     static var previews: some View {
-        FoodInventoryView()
+        let sampleBusiness = Business(name: "Sample Business") 
+        FoodInventoryView(business: sampleBusiness)
     }
 }
+
