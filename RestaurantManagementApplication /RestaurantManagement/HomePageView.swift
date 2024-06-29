@@ -3,56 +3,71 @@
 //  RestaurantManagement
 //
 //  Created by Amrit Banga on 6/10/24.
-//
+// Edited by Zijian Zhang on 6/28/24
+
 import SwiftUI
 
 struct HomePageView: View {
-    var body: some View {
-        VStack {
-            Text("Home Page")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
+    @StateObject private var viewModel = BusinessViewModel()
+    @State private var isShowingAddBusinessSheet = false
+    @State private var isNavigatingToFoodInventory = false
+    @State private var selectedBusiness: Business? = nil
 
-            HStack {
-                NavigationLink(destination: InventoryView()) {
-                    VStack {
-                        Image(systemName: "archivebox")
-                            .resizable()
-                            .frame(width: 100, height: 100)
-                            .padding()
-                        Text("Inventory")
-                            .font(.title2)
-                            .padding(.top, 10)
+    var body: some View {
+        NavigationView {
+            VStack {
+                List {
+                    ForEach(viewModel.businesses) { business in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(business.name)
+                                Text("ID: \(business.id.uuidString)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            Spacer()
+                            Button(action: {
+                                selectedBusiness = business
+                                isNavigatingToFoodInventory = true
+                            }) {
+                                Image(systemName: "pencil")
+                                    .foregroundColor(.blue)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            Button(action: {
+                                viewModel.removeBusiness(business)
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
-                    .padding()
                 }
-                
-                NavigationLink(destination: CostView()) {
-                    VStack {
-                        Image(systemName: "dollarsign.circle")
-                            .resizable()
-                            .frame(width: 100, height: 100)
-                            .padding()
-                        Text("Cost")
-                            .font(.title2)
-                            .padding(.top, 10)
+                .navigationTitle("Businesses")
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: {
+                            isShowingAddBusinessSheet = true
+                        }) {
+                            Image(systemName: "plus")
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
-                    .padding()
+                }
+                .sheet(isPresented: $isShowingAddBusinessSheet) {
+                    AddBusinessView(viewModel: viewModel, isShowingBusinessSheet: $isShowingAddBusinessSheet)
+                }
+                if let selectedBusiness = selectedBusiness {
+                    NavigationLink(destination: FoodInventoryView(business: selectedBusiness), isActive: $isNavigatingToFoodInventory) {
+                        EmptyView()
+                    }
+                } else {
+                    EmptyView()
                 }
             }
-            Spacer()
+            .onAppear {
+                viewModel.fetchBusinesses()
+            }
         }
-        .padding()
     }
-}
-
-#Preview {
-    HomePageView()
 }
