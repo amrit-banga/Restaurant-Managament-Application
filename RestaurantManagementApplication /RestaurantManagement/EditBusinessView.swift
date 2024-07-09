@@ -3,8 +3,10 @@
 //  RestaurantManagement
 //
 //  Created by Zijian Zhang on 6/28/24.
+//  Edited by Zijian Zhang on 7/6/24.
 
 import SwiftUI
+import FirebaseAuth
 
 struct EditBusinessView: View {
     @State private var name: String
@@ -26,23 +28,40 @@ struct EditBusinessView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Edit Business")) {
-                    TextField("Business Name", text: $name)
-                    TextField("Unique ID", text: $uniqueID)
-                    Button("Save Changes") {
-                        if let uuid = UUID(uuidString: uniqueID) {
-                            let updatedBusiness = Business(name: name, id: uuid)
-                            viewModel.updateBusiness(updatedBusiness)
-                            isShowingBusinessSheet = false
-                            isNavigatingToFoodInventory = true
+                if isOwner {
+                    Section(header: Text("Edit Business")) {
+                        TextField("Business Name", text: $name)
+                        TextField("Unique ID", text: $uniqueID)
+                        Button("Save Changes") {
+                            if let uuid = UUID(uuidString: uniqueID) {
+                                let updatedBusiness = Business(name: name, ownerId: business.ownerId, participants: business.participants, id: uuid)
+                                viewModel.updateBusiness(updatedBusiness)
+                                isShowingBusinessSheet = false
+                                isNavigatingToFoodInventory = true
+                            }
                         }
+                    }
+                } else {
+                    Section {
+                        Text("You do not have permission to edit this business.")
+                            .foregroundColor(.red)
                     }
                 }
             }
             .navigationTitle("Edit Business")
             .navigationBarItems(leading: Button("Cancel") {
-                isShowingBusinessSheet = false 
+                isShowingBusinessSheet = false
             })
         }
+    }
+
+    private var isOwner: Bool {
+        Auth.auth().currentUser?.uid == business.ownerId
+    }
+}
+
+struct EditBusinessView_Previews: PreviewProvider {
+    static var previews: some View {
+        EditBusinessView(viewModel: BusinessViewModel(), business: Business(name: "Test Business", ownerId: "ownerId"), isShowingBusinessSheet: .constant(true), isNavigatingToFoodInventory: .constant(false))
     }
 }
