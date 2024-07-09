@@ -4,12 +4,13 @@
 //
 //  Created by Amrit Banga on 6/10/24.
 //  Edited by Tucker Brisbois 6/17/24.
-//  Edited by Zijian Zhang 6/25/24, 6/28/24
+//  Edited by Zijian Zhang 6/25/24, 6/28/24, 7/6/24
+//
 
 import Foundation
 import SwiftUI
 import FirebaseFirestore
-
+import FirebaseAuth
 
 struct FoodItem: Identifiable {
     var id = UUID()
@@ -19,6 +20,7 @@ struct FoodItem: Identifiable {
     var expirationDate: Date
     var businessID: UUID
 }
+
 class DatabaseManager {
     static let shared = DatabaseManager()
     private let db = Firestore.firestore()
@@ -91,7 +93,6 @@ class DatabaseManager {
     }
 }
 
-
 class InventoryViewModel: ObservableObject {
     @Published var foodItems = [FoodItem]()
     var businessID: UUID
@@ -131,9 +132,6 @@ class InventoryViewModel: ObservableObject {
     }
 }
 
-
-
-
 struct FoodInventoryView: View {
     @StateObject private var viewModel: InventoryViewModel
     @State private var isShowingAddItemSheet = false
@@ -144,6 +142,9 @@ struct FoodInventoryView: View {
     @State private var newCost = ""
     @State private var newExpirationDate = Date()
     var business: Business?
+    private var isOwner: Bool {
+        return Auth.auth().currentUser?.uid == business?.ownerId
+    }
 
     init(business: Business) {
         self._viewModel = StateObject(wrappedValue: InventoryViewModel(businessID: business.id))
@@ -156,6 +157,21 @@ struct FoodInventoryView: View {
                 Text("Managing Inventory for: \(business?.name ?? "Unknown Business")")
                     .font(.title2)
                     .padding()
+
+                HStack {
+                    Text("Business ID: \(business?.id.uuidString ?? "Unknown ID")")
+                        .font(.subheadline)
+                        .padding(.trailing, 10)
+                    Button(action: {
+                        if let businessId = business?.id.uuidString {
+                            UIPasteboard.general.string = businessId
+                        }
+                    }) {
+                        Text("Copy ID")
+                            .foregroundColor(.blue)
+                    }
+                }
+                .padding()
 
                 HStack {
                     Text("Food")
@@ -183,26 +199,28 @@ struct FoodInventoryView: View {
                         Text(expirationDateFormatted(item.expirationDate))
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .font(.system(size: 12))
-                        Button(action: {
-                            selectedItem = item
-                            newName = item.name
-                            newQuantity = "\(item.quantity)"
-                            newCost = String(format: "%.2f", item.cost)
-                            newExpirationDate = item.expirationDate
-                            isEditingItem = true
-                        }) {
-                            Image(systemName: "pencil")
-                                .foregroundColor(.blue)
+                        if isOwner {
+                            Button(action: {
+                                selectedItem = item
+                                newName = item.name
+                                newQuantity = "\(item.quantity)"
+                                newCost = String(format: "%.2f", item.cost)
+                                newExpirationDate = item.expirationDate
+                                isEditingItem = true
+                            }) {
+                                Image(systemName: "pencil")
+                                    .foregroundColor(.blue)
+                            }
+                            .padding(.leading, 5)
+                            Button(action: {
+                                viewModel.removeFoodItem(item)
+                            }) {
+                                Text("X")
+                                    .foregroundColor(.red)
+                                    .font(.system(size: 20))
+                            }
+                            .padding(.leading, 1)
                         }
-                        .padding(.leading, 5)
-                        Button(action: {
-                            viewModel.removeFoodItem(item)
-                        }) {
-                            Text("X")
-                                .foregroundColor(.red)
-                                .font(.system(size: 20))
-                        }
-                        .padding(.leading, 1)
                     }
                     .padding()
                     .border(Color.black)
@@ -213,21 +231,23 @@ struct FoodInventoryView: View {
             
             Spacer()
             
-            Button(action: {
-                isShowingAddItemSheet = true
-            }) {
-                HStack {
-                    Image(systemName: "plus")
-                        .padding(.leading, 5)
-                    Text("Add Item")
+            if isOwner {
+                Button(action: {
+                    isShowingAddItemSheet = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus")
+                            .padding(.leading, 5)
+                        Text("Add Item")
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
                 }
+                .buttonStyle(BorderlessButtonStyle())
                 .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
             }
-            .buttonStyle(BorderlessButtonStyle())
-            .padding()
         }
         .padding()
         .sheet(isPresented: $isShowingAddItemSheet, content: {
@@ -373,11 +393,9 @@ struct FoodInventoryView: View {
     }
 }
 
-
 struct FoodInventoryView_Previews: PreviewProvider {
     static var previews: some View {
-        let sampleBusiness = Business(name: "Sample Business") 
+        let sampleBusiness = Business(name: "Sample Business", ownerId: "sampleOwner")
         FoodInventoryView(business: sampleBusiness)
     }
 }
-
