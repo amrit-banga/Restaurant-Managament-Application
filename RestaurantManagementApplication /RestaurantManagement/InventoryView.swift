@@ -154,9 +154,12 @@ struct FoodInventoryView: View {
     var body: some View {
         VStack {
             VStack {
-                Text("Managing Inventory for: \(business?.name ?? "Unknown Business")")
+                Text("Managing Inventory for:")
+                    .foregroundColor(.orange)
                     .font(.title2)
-                    .padding()
+                Text(business?.name ?? "Unknown Business")
+                    .font(.title2)
+                    .padding(.trailing, 10)
 
                 HStack {
                     Text("Business ID: \(business?.id.uuidString ?? "Unknown ID")")
@@ -176,12 +179,16 @@ struct FoodInventoryView: View {
                 HStack {
                     Text("Food")
                         .frame(maxWidth: 45, alignment: .leading)
+                        .foregroundColor(.orange)
                     Text("Quantity")
                         .frame(maxWidth: 70, alignment: .center)
+                        .foregroundColor(.orange)
                     Text("Cost")
                         .frame(maxWidth: 40, alignment: .center)
+                        .foregroundColor(.orange)
                     Text("Expiration Date")
                         .frame(maxWidth: .infinity, alignment: .trailing)
+                        .foregroundColor(.orange)
                 }
                 .font(.subheadline)
                 .padding()
