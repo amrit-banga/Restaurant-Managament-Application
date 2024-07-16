@@ -248,7 +248,7 @@ struct FoodInventoryView: View {
                         Text("Add Item")
                     }
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
@@ -300,7 +300,7 @@ struct FoodInventoryView: View {
                     
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
+                    .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     
@@ -369,7 +369,7 @@ struct FoodInventoryView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
+                    .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     
