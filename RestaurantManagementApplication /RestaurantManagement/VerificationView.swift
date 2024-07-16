@@ -14,13 +14,14 @@ struct VerificationView: View {
     @State private var navigateToHome = false
     var email: String
     @State private var correctCode: String = ""
-    private let sendGridAPIKey = ""
+    private let sendGridAPIKey = "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"
     
     var body: some View {
         VStack {
+            
             Text("Enter Verification Code")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 40, weight: .bold))
+                .foregroundColor(.orange)
                 .padding()
 
             TextField("Verification Code", text: $verificationCode)
@@ -35,9 +36,10 @@ struct VerificationView: View {
             }) {
                 Text("Send Verification Code")
                     .font(.title2)
+                    .fontWeight(.bold)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
+                    .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
@@ -49,9 +51,10 @@ struct VerificationView: View {
             }) {
                 Text("Verify Code")
                     .font(.title2)
+                    .fontWeight(.bold)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.green)
+                    .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
@@ -162,3 +165,4 @@ struct VerificationView_Previews: PreviewProvider {
         VerificationView(email: "test@example.com")
     }
 }
+

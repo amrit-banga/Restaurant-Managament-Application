@@ -5,7 +5,6 @@
 //  Created by Amrit Banga on 6/10/24.
 // Edited by Zijian Zhang on 6/28/24, 7/6/24
 
-
 import SwiftUI
 import FirebaseAuth
 
@@ -22,14 +21,22 @@ struct HomePageView: View {
     var body: some View {
         NavigationView {
             VStack {
+                Text("Businesses")
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundColor(.orange)
+                    .multilineTextAlignment(.center)
+
                 List {
                     ForEach(viewModel.businesses) { business in
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(business.name)
-                                Text("ID: \(business.id.uuidString)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                
+                               // Text("ID: \(business.id.uuidString)")
+                                   // .font(.subheadline)
+                                   // .foregroundColor(.gray)
                             }
                             Spacer()
                             Button(action: {
@@ -37,7 +44,7 @@ struct HomePageView: View {
                                 isNavigatingToFoodInventory = true
                             }) {
                                 Image(systemName: "pencil")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.orange)
                             }
                             .buttonStyle(BorderlessButtonStyle())
                             Button(action: {
@@ -50,13 +57,13 @@ struct HomePageView: View {
                                 }
                             }) {
                                 Image(systemName: "trash")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(.orange)
                             }
                             .buttonStyle(BorderlessButtonStyle())
                         }
                     }
                 }
-                .navigationTitle("Businesses")
+                .listStyle(PlainListStyle())
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         HStack {
@@ -64,11 +71,13 @@ struct HomePageView: View {
                                 isShowingAddBusinessSheet = true
                             }) {
                                 Image(systemName: "plus")
+                                    .foregroundColor(.orange)
                             }
                             Button(action: {
                                 isShowingJoinBusinessSheet = true
                             }) {
                                 Image(systemName: "person.badge.plus")
+                                    .foregroundColor(.orange)
                             }
                         }
                     }
@@ -85,6 +94,7 @@ struct HomePageView: View {
                     }
                 }
             }
+            .padding()
             .onAppear {
                 viewModel.fetchBusinesses()
             }
@@ -123,3 +133,4 @@ struct HomePageView_Previews: PreviewProvider {
         HomePageView()
     }
 }
+

@@ -38,7 +38,7 @@ struct JoinBusinessView: View {
                     Text("Join Business")
                         .font(.title2)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.orange)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
@@ -52,7 +52,7 @@ struct JoinBusinessView: View {
                 isShowingJoinBusinessSheet = false
             }) {
                 Text("Back")
-            })
+            }.foregroundColor(.orange))
             .alert(isPresented: $showingAlert) {
                 Alert(
                     title: Text(alertMessage),

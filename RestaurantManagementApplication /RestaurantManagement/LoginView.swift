@@ -18,8 +18,8 @@ struct LoginView: View {
     var body: some View {
         VStack {
             Text("Log In")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 40, weight: .bold))
+                .foregroundColor(.orange)
                 .padding()
 
             TextField("Email", text: $email)
@@ -45,9 +45,10 @@ struct LoginView: View {
             }) {
                 Text("Log In")
                     .font(.title2)
+                    .fontWeight(.bold)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
+                    .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
@@ -82,7 +83,7 @@ struct LoginView: View {
     }
 
     func isValidEmail(_ email: String) -> Bool {
-        let emailFormat = "(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?"
+        let emailFormat = "(?:[a-zA-Z0-9!#$%&'*+/=?^_{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailFormat)
         return emailPredicate.evaluate(with: email)
     }
@@ -93,3 +94,4 @@ struct LoginView_Previews: PreviewProvider {
         LoginView()
     }
 }
+

@@ -3,7 +3,7 @@
 //  TestApp
 //
 //  Created by Amrit Banga on 6/10/24.
-//
+//  Changed by Zijian Zhang on 6/24/24
 
 import SwiftUI
 import FirebaseAuth
@@ -19,9 +19,11 @@ struct CreateAccountView: View {
 
     var body: some View {
         VStack {
+            
             Text("Create Account")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 40, weight: .bold))
+                .foregroundColor(.orange)
+                .multilineTextAlignment(.center)
                 .padding()
 
             TextField("Email", text: $email)
@@ -31,27 +33,31 @@ struct CreateAccountView: View {
                 .padding(.horizontal)
                 .keyboardType(.emailAddress)
                 .autocapitalization(.none)
+                .multilineTextAlignment(.center)
             
             SecureField("Password", text: $password)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(10)
                 .padding(.horizontal)
+                .multilineTextAlignment(.center)
             
             SecureField("Confirm Password", text: $confirmPassword)
                 .padding()
                 .background(Color.gray.opacity(0.2))
                 .cornerRadius(10)
                 .padding(.horizontal)
+                .multilineTextAlignment(.center)
 
             Button(action: {
                 createAccount()
             }) {
                 Text("Create Account")
                     .font(.title2)
+                    .fontWeight(.bold)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.green)
+                    .background(Color.orange)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
@@ -113,3 +119,4 @@ struct CreateAccountView: View {
 #Preview {
     CreateAccountView()
 }
+

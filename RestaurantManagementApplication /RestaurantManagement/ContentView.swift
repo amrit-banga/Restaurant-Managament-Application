@@ -11,13 +11,17 @@ struct ContentView: View {
         NavigationView {
             VStack {
                 Text("Restaurant Management")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .font(.system(size: 40, weight: .bold))
+                    .background(Color.white)
+                    .foregroundColor(.orange)
+                    .multilineTextAlignment(.center)
                     .padding(.top)
                 
-                Image(systemName: "fork.knife")
+                Spacer()
+                
+                Image(systemName: "fork.knife.circle")
                     .resizable()
-                    .frame(width: 100, height: 100)
+                    .frame(width: 175, height: 175)
                     .padding()
                 
                 Spacer()
@@ -28,7 +32,7 @@ struct ContentView: View {
                             .font(.title2)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.blue)
+                            .background(Color.orange)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
@@ -39,7 +43,7 @@ struct ContentView: View {
                             .font(.title2)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.green)
+                            .background(Color.orange)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
@@ -58,4 +62,3 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
-

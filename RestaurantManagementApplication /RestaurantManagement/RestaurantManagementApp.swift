@@ -8,8 +8,7 @@ import SwiftUI
 import Firebase
 
 @main
-struct RestaurantManagementApp: App {
-    // Register app delegate for Firebase setup
+ struct RestaurantManagementApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     var body: some Scene {

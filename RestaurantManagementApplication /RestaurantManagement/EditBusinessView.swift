@@ -44,14 +44,14 @@ struct EditBusinessView: View {
                 } else {
                     Section {
                         Text("You do not have permission to edit this business.")
-                            .foregroundColor(.red)
+                            .foregroundColor(.orange)
                     }
                 }
             }
             .navigationTitle("Edit Business")
             .navigationBarItems(leading: Button("Cancel") {
                 isShowingBusinessSheet = false
-            })
+            }.foregroundColor(.orange))
         }
     }
 
