@@ -4,7 +4,6 @@
 //
 //  Created by Amrit Banga on 6/10/24.
 // Edited by Zijian Zhang on 6/28/24, 7/6/24
-
 import SwiftUI
 import FirebaseAuth
 
@@ -14,29 +13,26 @@ struct HomePageView: View {
     @State private var isShowingJoinBusinessSheet = false
     @State private var isNavigatingToFoodInventory = false
     @State private var selectedBusiness: Business? = nil
-    @State private var showingDeleteAlert = false
-    @State private var showingQuitAlert = false
-    @State private var selectedBusinessForDeletion: Business? = nil
+    @State private var showingAlert = false
+    @State private var alertType: AlertType? = nil
+    @State private var selectedBusinessForAction: Business? = nil
+    
+    enum AlertType {
+        case delete
+        case quit
+    }
 
     var body: some View {
         NavigationView {
             VStack {
-                Text("Businesses")
-                    .font(.system(size: 40, weight: .bold))
-                    .foregroundColor(.orange)
-                    .multilineTextAlignment(.center)
-
                 List {
                     ForEach(viewModel.businesses) { business in
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(business.name)
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                
-                               // Text("ID: \(business.id.uuidString)")
-                                   // .font(.subheadline)
-                                   // .foregroundColor(.gray)
+                                Text("ID: \(business.id.uuidString)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
                             }
                             Spacer()
                             Button(action: {
@@ -44,26 +40,27 @@ struct HomePageView: View {
                                 isNavigatingToFoodInventory = true
                             }) {
                                 Image(systemName: "pencil")
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.blue)
                             }
                             .buttonStyle(BorderlessButtonStyle())
                             Button(action: {
                                 if business.ownerId == Auth.auth().currentUser?.uid {
-                                    selectedBusinessForDeletion = business
-                                    showingDeleteAlert = true
+                                    selectedBusinessForAction = business
+                                    alertType = .delete
                                 } else {
-                                    selectedBusinessForDeletion = business
-                                    showingQuitAlert = true
+                                    selectedBusinessForAction = business
+                                    alertType = .quit
                                 }
+                                showingAlert = true
                             }) {
                                 Image(systemName: "trash")
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.red)
                             }
                             .buttonStyle(BorderlessButtonStyle())
                         }
                     }
                 }
-                .listStyle(PlainListStyle())
+                .navigationTitle("Businesses")
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         HStack {
@@ -71,13 +68,11 @@ struct HomePageView: View {
                                 isShowingAddBusinessSheet = true
                             }) {
                                 Image(systemName: "plus")
-                                    .foregroundColor(.orange)
                             }
                             Button(action: {
                                 isShowingJoinBusinessSheet = true
                             }) {
                                 Image(systemName: "person.badge.plus")
-                                    .foregroundColor(.orange)
                             }
                         }
                     }
@@ -94,35 +89,31 @@ struct HomePageView: View {
                     }
                 }
             }
-            .padding()
             .onAppear {
                 viewModel.fetchBusinesses()
             }
-            .alert(isPresented: $showingDeleteAlert) {
-                Alert(
-                    title: Text("Are you sure you want to delete this business?"),
-                    primaryButton: .destructive(Text("Yes")) {
-                        if let businessToDelete = selectedBusinessForDeletion {
-                            viewModel.removeBusiness(businessToDelete)
-                        }
-                    },
-                    secondaryButton: .cancel(Text("No")) {
-                        showingDeleteAlert = false
-                    }
-                )
-            }
-            .alert(isPresented: $showingQuitAlert) {
-                Alert(
-                    title: Text("Are you sure you want to quit this business?"),
-                    primaryButton: .destructive(Text("Yes")) {
-                        if let businessToQuit = selectedBusinessForDeletion {
-                            viewModel.quitBusiness(businessToQuit)
-                        }
-                    },
-                    secondaryButton: .cancel(Text("No")) {
-                        showingQuitAlert = false
-                    }
-                )
+            .alert(isPresented: $showingAlert) {
+                if alertType == .delete {
+                    return Alert(
+                        title: Text("Are you sure you want to delete this business?"),
+                        primaryButton: .destructive(Text("Yes")) {
+                            if let businessToDelete = selectedBusinessForAction {
+                                viewModel.removeBusiness(businessToDelete)
+                            }
+                        },
+                        secondaryButton: .cancel()
+                    )
+                } else {
+                    return Alert(
+                        title: Text("Are you sure you want to quit this business?"),
+                        primaryButton: .destructive(Text("Yes")) {
+                            if let businessToQuit = selectedBusinessForAction {
+                                viewModel.quitBusiness(businessToQuit)
+                            }
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
             }
         }
     }
@@ -133,4 +124,3 @@ struct HomePageView_Previews: PreviewProvider {
         HomePageView()
     }
 }
-
