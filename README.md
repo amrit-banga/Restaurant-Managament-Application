@@ -15,7 +15,7 @@ Firebase is an add on which will help with user registratin and validation purpo
 will be the database used to store data.
 
 Installation Steps:
-Download the applications zipfile, then extract and install it into XCode. Then click the build button to build the application
+Download the applications zipfile, then extract and install it into XCode. Then click the build button to build the application. Must have updated 2FA verification key. 
 
 Functionality
 The user will be greeted with a page that will prompt them to either log in or create an account. When creating an account, the user will enter 
@@ -42,6 +42,7 @@ Additional Documentation
 TODO: Provide links to additional documentation that may exist in the repo, e.g.,
 Sprint 1 Report: https://github.com/amrit-banga/Restaurant-Managament-Application/blob/main/Sprint%201%20Report.pdf
 Sprint 2 Report: https://github.com/amrit-banga/Restaurant-Managament-Application/blob/main/Sprint%202%20Report
+Sprint 3 Report: https://github.com/amrit-banga/Restaurant-Managament-Application/blob/main/Sprint%203%20Report%20.pdf
 * User links
 License
 If you haven't already, add a file called LICENSE.txt with the text of the appropriate license.
